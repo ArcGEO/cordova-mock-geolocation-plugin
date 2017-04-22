@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+        id="sk.arcgeo.mockgeolocation"
+        version="0.0.1">
+
+    <name>Mock geolocation</name>
+
+    <engines>
+        <engine name="cordova" version=">=3.4.0"/>
+    </engines>
+
+    <asset src="www/mock-geolocation.js" target="js/mock-geolocation.js"/>
+
+    <js-module src="www/mock-geolocation.js" name="mockGeolocation">
+        <clobbers target="mockGeolocation" />
+    </js-module>
+
+    <platform name="android">
+
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="MockGeolocation">
+                <param name="android-package" value="sk.arcgeo.plugin.MockGeolocation"/>
+            </feature>
+        </config-file>
+
+        <source-file src="src/android/MockGeolocation.java" target-dir="src/sk/arcgeo/plugin/"/>
+    </platform>
+
+</plugin>
