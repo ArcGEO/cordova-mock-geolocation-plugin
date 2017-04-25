@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         id="sk.arcgeo.mockgeolocation"
-        version="0.0.1">
+        version="1.0.0">
 
     <name>Mock geolocation</name>
 
@@ -23,7 +23,17 @@
             </feature>
         </config-file>
 
+
+        <config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
+        </config-file>
+
         <source-file src="src/android/MockGeolocation.java" target-dir="src/sk/arcgeo/plugin/"/>
+        <framework src="com.android.support:support-v4:23.+" />
+        <framework src="com.android.support:appcompat-v7:23.1.1" />
+        <framework src="com.android.support:design:23.1.1" />
+        <framework src="com.android.support:multidex:1.0.0" />
+        <framework src="com.android.support:support-annotations:23.+" />
     </platform>
 
 </plugin>

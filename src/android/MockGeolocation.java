@@ -1,19 +1,22 @@
 package sk.arcgeo.plugin;
 
+import android.Manifest;
+import android.content.*;
+import android.location.*;
+import android.os.Build;
+import android.os.SystemClock;
+import android.support.*;
+import android.util.Log;
+import android.widget.*;
 import org.apache.cordova.*;
 import org.json.JSONArray;
 import org.json.JSONException;
-import android.location.*;
-import android.content.*;
-import android.widget.*;
-import android.os.Build;
-import android.os.SystemClock;
-import android.util.Log;
 
 public class MockGeolocation extends CordovaPlugin {
     private Context mContext;
     //private CordovaLocationListener mListener;
     private LocationManager locMgr;
+    private static final String TAG = "CordovaMockGeolocationPlugin";
 
     LocationManager getLocationManager() {
         return locMgr;
@@ -22,9 +25,10 @@ public class MockGeolocation extends CordovaPlugin {
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
+
         locMgr = (LocationManager) cordova.getActivity().getSystemService(Context.LOCATION_SERVICE);
 
-        locMgr.addTestProvider (LocationManager.GPS_PROVIDER,
+        locMgr.addTestProvider(LocationManager.GPS_PROVIDER,
                 "requiresNetwork" == "",
                 "requiresSatellite" == "",
                 "requiresCell" == "",
@@ -39,37 +43,45 @@ public class MockGeolocation extends CordovaPlugin {
 
         locMgr.setTestProviderStatus(LocationManager.GPS_PROVIDER,
                 LocationProvider.AVAILABLE,
-                null,System.currentTimeMillis());
+                null, System.currentTimeMillis());
+
+        if (!(Build.VERSION.SDK_INT < Build.VERSION_CODES.M)) {
+            String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION};
+            cordova.requestPermissions(this, 0, permissions);
+        }
     }
 
     @Override
-    public boolean execute(String action, JSONArray data, CallbackContext callbackContext) throws JSONException {
-        //Log.i("action", action);
+    public boolean execute(final String action, final JSONArray data, final CallbackContext callbackContext) throws JSONException {
+        Log.v(TAG, "Action: " + action);
+
         if (action == null || !action.matches("mock|setMock")) {
             return false;
         }
         if (action.equals("setMock")) {
-            double latitude = Double.valueOf(data.getString(0));
-            double longitude = Double.valueOf(data.getString(1));
-            float accuracy = Float.valueOf(data.getString(2));
-            float altitude = Float.valueOf(data.getString(3));
-            return setMock(latitude, longitude, accuracy, altitude);
-        }
-        else {
+            final double latitude = Double.valueOf(data.getString(0));
+            final double longitude = Double.valueOf(data.getString(1));
+            final float accuracy = Float.valueOf(data.getString(2));
+            final float altitude = Float.valueOf(data.getString(3));
+
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    setMock(latitude, longitude, accuracy, altitude);
+                    callbackContext.success(); // Thread-safe.
+                }
+            });
+
+            return true;
+        } else {
             return false;
         }
     }
 
-    public boolean setMock(Double latitude, Double longitude, Float accuracy, Float altitude) {
+    public void setMock(Double latitude, Double longitude, Float accuracy, Float altitude) {
 
         Location newLocation = new Location(LocationManager.GPS_PROVIDER);
 
-        /*newLocation.setLatitude(-26.902038);  // double
-        newLocation.setLongitude(-48.671337);
-        newLocation.setAccuracy(1);
-        newLocation.setAltitude(0);
-        newLocation.setAccuracy(500);*/
-        newLocation.setLatitude(latitude);  // double
+        newLocation.setLatitude(latitude);
         newLocation.setLongitude(longitude);
         newLocation.setAccuracy(accuracy);
         newLocation.setAltitude(altitude);
@@ -79,8 +91,17 @@ public class MockGeolocation extends CordovaPlugin {
             newLocation.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
         }
 
-        locMgr.setTestProviderLocation(LocationManager.GPS_PROVIDER, newLocation);
+        Log.v(TAG, "Location to mock " + newLocation.toString());
 
-        return true;
+        try {
+            locMgr.setTestProviderLocation(LocationManager.GPS_PROVIDER, newLocation);
+        } catch (SecurityException e) {
+            Log.e(TAG, "Exception: " + Log.getStackTraceString(e));
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Exception: " + Log.getStackTraceString(e));
+        } finally {
+            Log.v(TAG, "LastLocation: " + locMgr.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+        }
+        Log.v(TAG, "LastLocation: " + locMgr.getLastKnownLocation(LocationManager.GPS_PROVIDER));
     }
 }

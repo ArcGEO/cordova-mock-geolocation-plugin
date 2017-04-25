@@ -1,8 +1,10 @@
 [![MIT license](http://img.shields.io/badge/license-MIT-brightgreen.svg)](http://opensource.org/licenses/MIT)
 
+Tested on: Android 4.4.2, Android 6.0
+
 # Cordova Mock Geolocation Plugin
 
-Plugin that mocks geolocation into Android device, e.g. from external GPS Bluetooth device.
+Plugin that mocks geolocation into Android device, e.g. from external GPS Bluetooth device. Plugin has been tested on Android 4.4.2 and Android 6.0
 
 ## Using
     
@@ -27,9 +29,9 @@ In your cordova application:
 
 ## Permissions
 
-```xml
-    <uses-permission android:name="android.permission.ACCESS_MOCK_LOCATION" />
-```
+For Android Marshmellow, you need to allow your app to mock location (in developer tools).
+
+Follow: [Allow mock location on Android M](https://www.youtube.com/watch?v=CWfIBqjP1kA)
 
 ## API
 
